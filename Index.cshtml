@@ -1,0 +1,153 @@
+﻿@model tprofile.Classes.Payeezy.AuthorizeSessionResponse
+@{
+    ViewBag.Title = "NewPayment";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>NewPayment</h2>
+
+@*@Model*@
+<script src="https://docs.paymentjs.firstdata.com/lib/uat/client-2.0.0.js" type="text/javascript"></script>
+@Model.ClientToken <br />
+@Model.PublicKeyBase64<br />
+<form id="form">
+    <div>
+        <label for="cc-name">Name</label>
+        <div id="cc-name" data-cc-name></div>
+    </div>
+
+    <div>
+        <label for="cc-card">Card</label>
+        <div id="cc-card" data-cc-card></div>
+    </div>
+
+    <div>
+        <label for="cc-exp">Exp</label>
+        <div id="cc-exp" data-cc-exp></div>
+    </div>
+
+    <!-- required only if using cvv in config-->
+    <div>
+        <label for="cc-cvv">CVV</label>
+        <div id="cc-cvv" data-cc-cvv></div>
+    </div>
+
+    <button id="submit">Submit</button>
+</form>
+<script>
+    const config = {
+  // optional
+  styles: {
+    ".emptyClass": {
+    },
+
+    ".focusClass": {
+    },
+
+    ".invalidClass": {
+      color: "#C01324",
+    },
+
+    ".validClass": {
+      color: "#43B02A",
+    },
+  },
+
+  // optional
+  classes: {
+    empty: "emptyClass",
+    focus: "focusClass",
+    invalid: "invalidClass",
+    valid: "validClass",
+  },
+
+  fields: {
+    card: {
+      selector: '[data-cc-card]',
+
+      // optional
+      placeholder: 'Full Name',
+    },
+
+    // optional but required for successful zero dollar auth
+    cvv: {
+      selector: '[data-cc-cvv]',
+
+      // optional
+      placeholder: 'Full Name',
+    },
+
+    exp: {
+      selector: '[data-cc-exp]',
+
+      // optional
+      placeholder: 'Full Name',
+    },
+
+    name: {
+      selector: '[data-cc-name]',
+
+      // optional
+      placeholder: 'Full Name',
+    }
+  }
+    };
+
+    const hooks = {
+  // required
+        preFlowHook: (callbackFn) => {
+            console.log("preflowhook");
+    // values come from authorize-session endpoint
+    callbackFn({
+      clientToken: "@Model.ClientToken",
+      publicKeyBase64: "@Model.PublicKeyBase64",
+    });
+  },
+    };
+
+    $( document ).ready(function() {
+      window.firstdata.createPaymentForm(config, hooks, (paymentForm) => {
+  // example: add submit handler to form
+          document.getElementById("form").addEventListener("submit", (e) => {
+       console.log("paymentsubmit");
+    e.preventDefault();
+    paymentForm.onSubmit(
+      // on success
+      (clientToken) => {
+      },
+
+      // on failure
+      (errorObj) => {
+      },
+    );
+  });
+    });
+});
+
+
+
+    // onSubmit (roughly the manual equivalent)
+const onSubmit = (resolve, reject) => {
+  try {
+    paymentForm.validate(
+      () => {
+        paymentForm.authenticate(
+          (auth) => {
+            paymentForm.submit(auth, resolve, reject);
+          },
+
+          reject,
+        );
+      },
+
+      reject,
+    );
+  } catch (error) {
+    if (reject) {
+      reject(error);
+    } else {
+      throw error;
+    }
+  }
+};
+</script>
